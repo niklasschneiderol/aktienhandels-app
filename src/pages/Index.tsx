@@ -3,6 +3,7 @@ import { StockSearch } from "@/components/StockSearch";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { KeyMetrics } from "@/components/KeyMetrics";
 import { QuarterlyData } from "@/components/QuarterlyData";
+import { Portfolio, PortfolioStock } from "@/components/Portfolio";
 import { useToast } from "@/hooks/use-toast";
 import { BarChart3, AlertCircle } from "lucide-react";
 import {
@@ -34,7 +35,24 @@ interface StockData {
 const Index = () => {
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [portfolio, setPortfolio] = useState<PortfolioStock[]>([]);
   const { toast } = useToast();
+
+  const handleAddStock = (stock: PortfolioStock) => {
+    setPortfolio([...portfolio, stock]);
+    toast({
+      title: "Hinzugefügt",
+      description: `${stock.symbol} wurde zum Portfolio hinzugefügt`,
+    });
+  };
+
+  const handleRemoveStock = (symbol: string) => {
+    setPortfolio(portfolio.filter((s) => s.symbol !== symbol));
+  };
+
+  const handleSelectStock = (symbol: string) => {
+    handleSearch(symbol);
+  };
 
   const handleSearch = async (symbol: string) => {
     setIsLoading(true);
@@ -91,82 +109,89 @@ const Index = () => {
     <div className="min-h-screen gradient-subtle">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 shadow-card">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg gradient-primary flex items-center justify-center">
-              <BarChart3 className="h-6 w-6 text-white" />
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded gradient-primary flex items-center justify-center">
+              <BarChart3 className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-2xl font-bold">Stock Data Dashboard</h1>
+            <h1 className="text-xl font-bold">eToro Portfolio Tracker</h1>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
-          {/* Search Section */}
-          <section className="text-center space-y-4">
-            <h2 className="text-3xl font-bold mb-2">Search Company Data</h2>
-            <p className="text-muted-foreground mb-6">
-              Enter a stock symbol to view detailed financial information
-            </p>
-            <StockSearch onSearch={handleSearch} isLoading={isLoading} />
-          </section>
-
-          {/* API Key Notice */}
-          <Alert className="max-w-2xl mx-auto bg-success-light border-primary/20">
-            <AlertCircle className="h-4 w-4 text-primary" />
-            <AlertDescription className="text-sm">
-              <strong>Note:</strong> This demo uses Alpha Vantage API with the 'demo' key (limited to symbol 'IBM'). 
-              For full functionality, get a free API key at{" "}
-              <a 
-                href="https://www.alphavantage.co/support/#api-key" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="underline font-semibold"
-              >
-                alphavantage.co
-              </a>
-              {" "}and replace it in src/services/stockApi.ts
-            </AlertDescription>
-          </Alert>
-
-          {/* Loading State */}
-          {isLoading && (
-            <div className="text-center py-12">
-              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-              <p className="mt-4 text-muted-foreground">Loading stock data...</p>
+      <main className="container mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-4">
+          {/* Left Column - Stock Data */}
+          <div className="space-y-4">
+            {/* Search Section */}
+            <div className="space-y-2">
+              <StockSearch onSearch={handleSearch} isLoading={isLoading} />
             </div>
-          )}
 
-          {/* Stock Data Display */}
-          {stockData && !isLoading && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <CompanyOverview
-                name={stockData.overview.name}
-                symbol={stockData.overview.symbol}
-                exchange={stockData.overview.exchange}
-                sector={stockData.overview.sector}
-              />
+            {/* API Key Notice */}
+            <Alert className="bg-success-light border-primary/20">
+              <AlertCircle className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-xs">
+                <strong>Hinweis:</strong> Demo-API-Key (nur 'IBM'). Kostenloser Key bei{" "}
+                <a 
+                  href="https://www.alphavantage.co/support/#api-key" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline font-semibold"
+                >
+                  alphavantage.co
+                </a>
+              </AlertDescription>
+            </Alert>
 
-              <KeyMetrics
-                marketCap={stockData.overview.marketCap}
-                peRatio={stockData.overview.peRatio}
-                eps={stockData.overview.eps}
-              />
+            {/* Loading State */}
+            {isLoading && (
+              <div className="text-center py-8">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Lade Daten...</p>
+              </div>
+            )}
 
-              <QuarterlyData quarters={stockData.quarters} />
-            </div>
-          )}
+            {/* Stock Data Display */}
+            {stockData && !isLoading && (
+              <div className="space-y-3 animate-in fade-in duration-300">
+                <CompanyOverview
+                  name={stockData.overview.name}
+                  symbol={stockData.overview.symbol}
+                  exchange={stockData.overview.exchange}
+                  sector={stockData.overview.sector}
+                />
 
-          {/* Empty State */}
-          {!stockData && !isLoading && (
-            <div className="text-center py-12 text-muted-foreground">
-              <BarChart3 className="h-16 w-16 mx-auto mb-4 opacity-20" />
-              <p>Search for a stock symbol to get started</p>
-              <p className="text-sm mt-2">Try searching for: IBM (demo), AAPL, MSFT, GOOGL</p>
-            </div>
-          )}
+                <KeyMetrics
+                  marketCap={stockData.overview.marketCap}
+                  peRatio={stockData.overview.peRatio}
+                  eps={stockData.overview.eps}
+                />
+
+                <QuarterlyData quarters={stockData.quarters} />
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!stockData && !isLoading && (
+              <div className="text-center py-8 text-muted-foreground">
+                <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                <p className="text-sm">Suche nach einem Symbol</p>
+                <p className="text-xs mt-1">Beispiel: IBM (demo), AAPL, MSFT</p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Portfolio */}
+          <div className="lg:sticky lg:top-20 lg:h-fit">
+            <Portfolio
+              stocks={portfolio}
+              onAddStock={handleAddStock}
+              onRemoveStock={handleRemoveStock}
+              onSelectStock={handleSelectStock}
+            />
+          </div>
         </div>
       </main>
     </div>

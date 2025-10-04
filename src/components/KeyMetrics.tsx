@@ -1,5 +1,5 @@
 import { TrendingUp, DollarSign, BarChart3 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 interface KeyMetricsProps {
   marketCap?: number;
@@ -19,36 +19,31 @@ export const KeyMetrics = ({ marketCap, peRatio, eps }: KeyMetricsProps) => {
     {
       label: "Market Cap",
       value: marketCap ? formatLargeNumber(marketCap) : "N/A",
-      icon: TrendingUp,
-      color: "text-primary",
+      icon: DollarSign,
     },
     {
-      label: "P/E Ratio",
+      label: "KGV",
       value: peRatio ? peRatio.toFixed(2) : "N/A",
       icon: BarChart3,
-      color: "text-primary",
     },
     {
       label: "EPS",
       value: eps ? `$${eps.toFixed(2)}` : "N/A",
-      icon: DollarSign,
-      color: "text-primary",
+      icon: TrendingUp,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 gap-2">
       {metrics.map((metric) => (
-        <Card key={metric.label} className="shadow-card border-2 hover:shadow-elevated transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {metric.label}
-            </CardTitle>
-            <metric.icon className={`h-5 w-5 ${metric.color}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{metric.value}</div>
-          </CardContent>
+        <Card key={metric.label} className="p-2 shadow-card border-border/50">
+          <div className="flex items-center gap-2">
+            <metric.icon className="h-4 w-4 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">{metric.label}</p>
+              <p className="text-sm font-bold truncate">{metric.value}</p>
+            </div>
+          </div>
         </Card>
       ))}
     </div>

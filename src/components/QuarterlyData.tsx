@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -29,59 +29,55 @@ const formatCurrency = (num: number | undefined): string => {
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+  return date.toLocaleDateString('de-DE', { year: 'numeric', month: 'short' });
 };
 
 export const QuarterlyData = ({ quarters }: QuarterlyDataProps) => {
   return (
-    <Card className="shadow-card border-2">
-      <CardHeader className="bg-gradient-subtle">
-        <CardTitle className="text-xl">Quarterly Financial Data</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-accent/50">
-                <TableHead className="font-semibold">Quarter</TableHead>
-                <TableHead className="text-right font-semibold">Revenue</TableHead>
-                <TableHead className="text-right font-semibold">Gross Profit</TableHead>
-                <TableHead className="text-right font-semibold">Net Income</TableHead>
-                <TableHead className="text-right font-semibold">Cash Flow</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quarters.length > 0 ? (
-                quarters.map((quarter, index) => (
-                  <TableRow key={index} className="hover:bg-accent/30 transition-colors">
-                    <TableCell className="font-medium">
-                      {formatDate(quarter.fiscalDateEnding)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCurrency(quarter.revenue)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCurrency(quarter.grossProfit)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCurrency(quarter.netIncome)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCurrency(quarter.operatingCashflow)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No quarterly data available
+    <Card className="p-3 shadow-card border-border/50">
+      <h3 className="text-sm font-bold mb-2">Quartalsberichte</h3>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs py-2">Quartal</TableHead>
+              <TableHead className="text-right text-xs py-2">Umsatz</TableHead>
+              <TableHead className="text-right text-xs py-2">Bruttogewinn</TableHead>
+              <TableHead className="text-right text-xs py-2">Nettogewinn</TableHead>
+              <TableHead className="text-right text-xs py-2">Cashflow</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {quarters.length > 0 ? (
+              quarters.map((quarter, index) => (
+                <TableRow key={index}>
+                  <TableCell className="text-xs py-2 font-medium">
+                    {formatDate(quarter.fiscalDateEnding)}
+                  </TableCell>
+                  <TableCell className="text-right text-xs py-2 tabular-nums">
+                    {formatCurrency(quarter.revenue)}
+                  </TableCell>
+                  <TableCell className="text-right text-xs py-2 tabular-nums">
+                    {formatCurrency(quarter.grossProfit)}
+                  </TableCell>
+                  <TableCell className="text-right text-xs py-2 tabular-nums">
+                    {formatCurrency(quarter.netIncome)}
+                  </TableCell>
+                  <TableCell className="text-right text-xs py-2 tabular-nums">
+                    {formatCurrency(quarter.operatingCashflow)}
                   </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground text-xs py-4">
+                  Keine Daten verfügbar
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </Card>
   );
 };
