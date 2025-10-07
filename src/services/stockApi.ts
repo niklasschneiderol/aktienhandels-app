@@ -1,7 +1,7 @@
 // Stock API Service - Finnhub.io
 // Get a free API key from https://finnhub.io/register
 
-const API_KEY = 'demo'; // Replace with your actual Finnhub API key
+const API_KEY = 'd3iibspr01qmn7fk7l90d3iibspr01qmn7fk7l9g';
 const BASE_URL = 'https://finnhub.io/api/v1';
 
 export interface CompanyOverview {
