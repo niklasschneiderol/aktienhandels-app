@@ -1,9 +1,8 @@
-// Stock API Service
-// Note: This uses Alpha Vantage API as an example
-// You'll need to get a free API key from https://www.alphavantage.co/support/#api-key
+// Stock API Service - Finnhub.io
+// Get a free API key from https://finnhub.io/register
 
-const API_KEY = 'demo'; // Replace with your actual API key
-const BASE_URL = 'https://www.alphavantage.co/query';
+const API_KEY = 'demo'; // Replace with your actual Finnhub API key
+const BASE_URL = 'https://finnhub.io/api/v1';
 
 export interface CompanyOverview {
   Symbol: string;
@@ -13,11 +12,6 @@ export interface CompanyOverview {
   MarketCapitalization: string;
   PERatio: string;
   EPS: string;
-}
-
-export interface QuarterlyEarnings {
-  fiscalDateEnding: string;
-  reportedEPS: string;
 }
 
 export interface IncomeStatement {
@@ -33,26 +27,42 @@ export interface CashFlow {
 }
 
 export const fetchCompanyOverview = async (symbol: string): Promise<CompanyOverview> => {
-  const response = await fetch(
-    `${BASE_URL}?function=OVERVIEW&symbol=${symbol}&apikey=${API_KEY}`
+  // Fetch company profile
+  const profileResponse = await fetch(
+    `${BASE_URL}/stock/profile2?symbol=${symbol}&token=${API_KEY}`
   );
   
-  if (!response.ok) {
+  if (!profileResponse.ok) {
     throw new Error('Failed to fetch company data');
   }
   
-  const data = await response.json();
+  const profile = await profileResponse.json();
   
-  if (data.Note || data['Error Message']) {
-    throw new Error(data.Note || data['Error Message'] || 'API limit reached or invalid symbol');
+  if (!profile.name) {
+    throw new Error('Invalid symbol or API limit reached');
   }
+
+  // Fetch basic financials for P/E and EPS
+  const metricsResponse = await fetch(
+    `${BASE_URL}/stock/metric?symbol=${symbol}&metric=all&token=${API_KEY}`
+  );
   
-  return data;
+  const metrics = await metricsResponse.json();
+  
+  return {
+    Symbol: profile.ticker || symbol,
+    Name: profile.name || '',
+    Exchange: profile.exchange || '',
+    Sector: profile.finnhubIndustry || '',
+    MarketCapitalization: (profile.marketCapitalization * 1000000).toString(),
+    PERatio: metrics.metric?.peBasicExclExtraTTM?.toString() || '0',
+    EPS: metrics.metric?.epsBasicExclExtraItemsAnnual?.toString() || '0',
+  };
 };
 
 export const fetchIncomeStatement = async (symbol: string): Promise<IncomeStatement[]> => {
   const response = await fetch(
-    `${BASE_URL}?function=INCOME_STATEMENT&symbol=${symbol}&apikey=${API_KEY}`
+    `${BASE_URL}/stock/financials?symbol=${symbol}&statement=ic&freq=quarterly&token=${API_KEY}`
   );
   
   if (!response.ok) {
@@ -61,16 +71,21 @@ export const fetchIncomeStatement = async (symbol: string): Promise<IncomeStatem
   
   const data = await response.json();
   
-  if (data.Note || data['Error Message']) {
-    throw new Error('API limit reached or invalid data');
+  if (!data.financials || data.financials.length === 0) {
+    throw new Error('No financial data available');
   }
   
-  return data.quarterlyReports || [];
+  return data.financials.map((item: any) => ({
+    fiscalDateEnding: item.period || '',
+    totalRevenue: item.revenue?.toString() || '0',
+    grossProfit: item.grossProfit?.toString() || '0',
+    netIncome: item.netIncome?.toString() || '0',
+  }));
 };
 
 export const fetchCashFlow = async (symbol: string): Promise<CashFlow[]> => {
   const response = await fetch(
-    `${BASE_URL}?function=CASH_FLOW&symbol=${symbol}&apikey=${API_KEY}`
+    `${BASE_URL}/stock/financials?symbol=${symbol}&statement=cf&freq=quarterly&token=${API_KEY}`
   );
   
   if (!response.ok) {
@@ -79,9 +94,12 @@ export const fetchCashFlow = async (symbol: string): Promise<CashFlow[]> => {
   
   const data = await response.json();
   
-  if (data.Note || data['Error Message']) {
-    throw new Error('API limit reached or invalid data');
+  if (!data.financials || data.financials.length === 0) {
+    return [];
   }
   
-  return data.quarterlyReports || [];
+  return data.financials.map((item: any) => ({
+    fiscalDateEnding: item.period || '',
+    operatingCashflow: item.cashFlowFromOperatingActivities?.toString() || '0',
+  }));
 };

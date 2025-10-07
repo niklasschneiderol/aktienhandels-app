@@ -133,14 +133,14 @@ const Index = () => {
             <Alert className="bg-success-light border-primary/20">
               <AlertCircle className="h-4 w-4 text-primary" />
               <AlertDescription className="text-xs">
-                <strong>Hinweis:</strong> Demo-API-Key (nur 'IBM'). Kostenloser Key bei{" "}
+                <strong>Hinweis:</strong> Demo-API-Key aktiv. Kostenloser API-Schlüssel bei{" "}
                 <a 
-                  href="https://www.alphavantage.co/support/#api-key" 
+                  href="https://finnhub.io/register" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="underline font-semibold"
                 >
-                  alphavantage.co
+                  finnhub.io
                 </a>
               </AlertDescription>
             </Alert>
