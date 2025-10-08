@@ -3,7 +3,7 @@
 
 const FINNHUB_API_KEY = 'd3iibspr01qmn7fk7l90d3iibspr01qmn7fk7l9g';
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
-const ALPHAVANTAGE_API_KEY = 'demo'; // Replace with your API key
+const ALPHAVANTAGE_API_KEY = 'V81FRDZ1OC5UETB8';
 const ALPHAVANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
 
 export interface CompanyOverview {
