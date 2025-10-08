@@ -28,6 +28,7 @@ interface StockData {
     marketCap: number;
     peRatio: number;
     eps: number;
+    previousClose?: number;
   };
   quarters: Array<{
     fiscalDateEnding: string;
@@ -128,6 +129,7 @@ const Index = () => {
           marketCap: parseFloat(overview.MarketCapitalization),
           peRatio: parseFloat(overview.PERatio),
           eps: parseFloat(overview.EPS),
+          previousClose: overview.PreviousClose,
         },
         quarters: quarterlyData,
         indicators: interpretations,
@@ -221,6 +223,7 @@ const Index = () => {
                   marketCap={stockData.overview.marketCap}
                   peRatio={stockData.overview.peRatio}
                   eps={stockData.overview.eps}
+                  previousClose={stockData.overview.previousClose}
                 />
 
                 <TechnicalIndicators interpretations={stockData.indicators} />

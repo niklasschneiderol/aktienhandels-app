@@ -1,10 +1,11 @@
-import { TrendingUp, DollarSign, BarChart3 } from "lucide-react";
+import { TrendingUp, DollarSign, BarChart3, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface KeyMetricsProps {
   marketCap?: number;
   peRatio?: number;
   eps?: number;
+  previousClose?: number;
 }
 
 const formatLargeNumber = (num: number): string => {
@@ -14,8 +15,13 @@ const formatLargeNumber = (num: number): string => {
   return `$${num.toFixed(2)}`;
 };
 
-export const KeyMetrics = ({ marketCap, peRatio, eps }: KeyMetricsProps) => {
+export const KeyMetrics = ({ marketCap, peRatio, eps, previousClose }: KeyMetricsProps) => {
   const metrics = [
+    {
+      label: "Letzter Schlusskurs",
+      value: previousClose ? `$${previousClose.toFixed(2)}` : "N/A",
+      icon: ArrowDown,
+    },
     {
       label: "Market Cap",
       value: marketCap ? formatLargeNumber(marketCap) : "N/A",
@@ -34,9 +40,9 @@ export const KeyMetrics = ({ marketCap, peRatio, eps }: KeyMetricsProps) => {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {metrics.map((metric) => (
-        <Card key={metric.label} className="p-2 shadow-card border-border/50">
+        <Card key={metric.label} className="p-2 shadow-card border-border/50" data-testid={`metric-${metric.label.toLowerCase().replace(/\s+/g, '-')}`}>
           <div className="flex items-center gap-2">
             <metric.icon className="h-4 w-4 text-primary flex-shrink-0" />
             <div className="min-w-0">

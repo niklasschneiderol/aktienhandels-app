@@ -14,6 +14,7 @@ export interface CompanyOverview {
   MarketCapitalization: string;
   PERatio: string;
   EPS: string;
+  PreviousClose?: number;
 }
 
 export interface IncomeStatement {
@@ -68,10 +69,12 @@ export const searchSymbol = async (keywords: string): Promise<SymbolSearchResult
 }
 
 export const fetchCompanyOverview = async (symbol: string): Promise<CompanyOverview> => {
-  // Fetch company profile from Finnhub
-  const profileResponse = await fetch(
-    `${FINNHUB_BASE_URL}/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}`
-  );
+  // Fetch company profile, metrics, and quote in parallel from Finnhub
+  const [profileResponse, metricsResponse, quoteResponse] = await Promise.all([
+    fetch(`${FINNHUB_BASE_URL}/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}`),
+    fetch(`${FINNHUB_BASE_URL}/stock/metric?symbol=${symbol}&metric=all&token=${FINNHUB_API_KEY}`),
+    fetch(`${FINNHUB_BASE_URL}/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`)
+  ]);
   
   if (!profileResponse.ok) {
     throw new Error('Failed to fetch company data');
@@ -83,12 +86,8 @@ export const fetchCompanyOverview = async (symbol: string): Promise<CompanyOverv
     throw new Error('Invalid symbol or API limit reached');
   }
 
-  // Fetch basic financials for P/E and EPS from Finnhub
-  const metricsResponse = await fetch(
-    `${FINNHUB_BASE_URL}/stock/metric?symbol=${symbol}&metric=all&token=${FINNHUB_API_KEY}`
-  );
-  
   const metrics = await metricsResponse.json();
+  const quote = await quoteResponse.json();
   
   return {
     Symbol: profile.ticker || symbol,
@@ -98,6 +97,7 @@ export const fetchCompanyOverview = async (symbol: string): Promise<CompanyOverv
     MarketCapitalization: (profile.marketCapitalization * 1000000).toString(),
     PERatio: metrics.metric?.peBasicExclExtraTTM?.toString() || '0',
     EPS: metrics.metric?.epsBasicExclExtraItemsAnnual?.toString() || '0',
+    PreviousClose: quote.pc || undefined,
   };
 };
 
