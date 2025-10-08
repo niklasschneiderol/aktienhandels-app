@@ -28,6 +28,45 @@ export interface CashFlow {
   operatingCashflow: string;
 }
 
+export interface SymbolSearchResult {
+  symbol: string;
+  name: string;
+  type: string;
+  region: string;
+  currency: string;
+}
+
+export const searchSymbol = async (keywords: string): Promise<SymbolSearchResult[]> => {
+  try {
+    const response = await fetch(
+      `${ALPHAVANTAGE_BASE_URL}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(keywords)}&apikey=${ALPHAVANTAGE_API_KEY}`
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to search symbols');
+    }
+    
+    const data = await response.json();
+    
+    if (data.Note) {
+      throw new Error('API rate limit reached. Please try again later.');
+    }
+    
+    const matches = data.bestMatches || [];
+    
+    return matches.slice(0, 10).map((item: any) => ({
+      symbol: item['1. symbol'] || '',
+      name: item['2. name'] || '',
+      type: item['3. type'] || '',
+      region: item['4. region'] || '',
+      currency: item['8. currency'] || '',
+    }));
+  } catch (error) {
+    console.error('Error searching symbols:', error);
+    return [];
+  }
+}
+
 export const fetchCompanyOverview = async (symbol: string): Promise<CompanyOverview> => {
   // Fetch company profile from Finnhub
   const profileResponse = await fetch(
