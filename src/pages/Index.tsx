@@ -160,7 +160,7 @@ const Index = () => {
             <div className="h-8 w-8 rounded gradient-primary flex items-center justify-center">
               <BarChart3 className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold">eToro Portfolio Tracker</h1>
+            <h1 className="text-xl font-bold">Portfolio Manager ©NMS</h1>
           </div>
         </div>
       </header>
