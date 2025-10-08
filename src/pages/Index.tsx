@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StockSearch } from "@/components/StockSearch";
 import { CompanyOverview } from "@/components/CompanyOverview";
 import { KeyMetrics } from "@/components/KeyMetrics";
 import { QuarterlyData } from "@/components/QuarterlyData";
+import { TechnicalIndicators } from "@/components/TechnicalIndicators";
 import { Portfolio, PortfolioStock } from "@/components/Portfolio";
 import { useToast } from "@/hooks/use-toast";
-import { BarChart3, AlertCircle } from "lucide-react";
+import { BarChart3, AlertCircle, Save, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   fetchCompanyOverview,
   fetchIncomeStatement,
   fetchCashFlow,
+  fetchTechnicalIndicators,
+  interpretIndicators,
+  IndicatorInterpretation,
 } from "@/services/stockApi";
+import { savePortfolio, loadPortfolio } from "@/services/portfolioStorage";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface StockData {
@@ -30,6 +36,7 @@ interface StockData {
     netIncome?: number;
     operatingCashflow?: number;
   }>;
+  indicators: IndicatorInterpretation[];
 }
 
 const Index = () => {
@@ -38,8 +45,16 @@ const Index = () => {
   const [portfolio, setPortfolio] = useState<PortfolioStock[]>([]);
   const { toast } = useToast();
 
+  // Load portfolio on mount
+  useEffect(() => {
+    const saved = loadPortfolio();
+    setPortfolio(saved);
+  }, []);
+
   const handleAddStock = (stock: PortfolioStock) => {
-    setPortfolio([...portfolio, stock]);
+    const updated = [...portfolio, stock];
+    setPortfolio(updated);
+    savePortfolio(updated);
     toast({
       title: "Hinzugefügt",
       description: `${stock.symbol} wurde zum Portfolio hinzugefügt`,
@@ -47,7 +62,32 @@ const Index = () => {
   };
 
   const handleRemoveStock = (symbol: string) => {
-    setPortfolio(portfolio.filter((s) => s.symbol !== symbol));
+    const updated = portfolio.filter((s) => s.symbol !== symbol);
+    setPortfolio(updated);
+    savePortfolio(updated);
+  };
+
+  const handleSavePortfolio = () => {
+    savePortfolio(portfolio);
+    toast({
+      title: "Gespeichert",
+      description: "Portfolio wurde erfolgreich gespeichert",
+    });
+  };
+
+  const handleExportPortfolio = () => {
+    const dataStr = JSON.stringify(portfolio, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'portfolio.json';
+    link.click();
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Exportiert",
+      description: "Portfolio wurde als JSON heruntergeladen",
+    });
   };
 
   const handleSelectStock = (symbol: string) => {
@@ -58,14 +98,15 @@ const Index = () => {
     setIsLoading(true);
     try {
       // Fetch all data in parallel
-      const [overview, incomeStatements, cashFlows] = await Promise.all([
+      const [overview, incomeStatements, cashFlows, technicalIndicators] = await Promise.all([
         fetchCompanyOverview(symbol),
         fetchIncomeStatement(symbol),
         fetchCashFlow(symbol),
+        fetchTechnicalIndicators(symbol),
       ]);
 
       // Combine the data from different sources
-      const quarterlyData = incomeStatements.slice(0, 3).map((income, index) => {
+      const quarterlyData = incomeStatements.slice(0, 8).map((income, index) => {
         const cashFlow = cashFlows[index];
         return {
           fiscalDateEnding: income.fiscalDateEnding,
@@ -75,6 +116,8 @@ const Index = () => {
           operatingCashflow: parseFloat(cashFlow?.operatingCashflow || "0") || undefined,
         };
       });
+
+      const interpretations = interpretIndicators(technicalIndicators);
 
       setStockData({
         overview: {
@@ -87,16 +130,17 @@ const Index = () => {
           eps: parseFloat(overview.EPS),
         },
         quarters: quarterlyData,
+        indicators: interpretations,
       });
 
       toast({
-        title: "Success",
-        description: `Loaded data for ${overview.Name}`,
+        title: "Erfolgreich",
+        description: `Daten für ${overview.Name} geladen`,
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch stock data",
+        title: "Fehler",
+        description: error instanceof Error ? error.message : "Fehler beim Laden der Daten",
         variant: "destructive",
       });
       setStockData(null);
@@ -133,15 +177,25 @@ const Index = () => {
             <Alert className="bg-success-light border-primary/20">
               <AlertCircle className="h-4 w-4 text-primary" />
               <AlertDescription className="text-xs">
-                <strong>Hinweis:</strong> Demo-API-Key aktiv. Kostenloser API-Schlüssel bei{" "}
+                <strong>API-Quellen:</strong>{" "}
                 <a 
                   href="https://finnhub.io/register" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="underline font-semibold"
                 >
-                  finnhub.io
+                  Finnhub
                 </a>
+                {" & "}
+                <a 
+                  href="https://www.alphavantage.co/support/#api-key" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline font-semibold"
+                >
+                  Alpha Vantage
+                </a>
+                {" - Kostenlose API-Keys erforderlich (25 Requests/Tag)"}
               </AlertDescription>
             </Alert>
 
@@ -168,6 +222,8 @@ const Index = () => {
                   peRatio={stockData.overview.peRatio}
                   eps={stockData.overview.eps}
                 />
+
+                <TechnicalIndicators interpretations={stockData.indicators} />
 
                 <QuarterlyData quarters={stockData.quarters} />
               </div>
