@@ -6,12 +6,13 @@ interface CompanyOverviewProps {
   symbol: string;
   exchange?: string;
   sector?: string;
+  description?: string;
 }
 
-export const CompanyOverview = ({ name, symbol, exchange, sector }: CompanyOverviewProps) => {
+export const CompanyOverview = ({ name, symbol, exchange, sector, description }: CompanyOverviewProps) => {
   return (
     <Card className="p-3 shadow-card border-border/50">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2">
         <div className="h-8 w-8 rounded gradient-primary flex items-center justify-center">
           <Building2 className="h-4 w-4 text-white" />
         </div>
@@ -24,6 +25,11 @@ export const CompanyOverview = ({ name, symbol, exchange, sector }: CompanyOverv
           </div>
         </div>
       </div>
+      {description && (
+        <p className="text-sm text-muted-foreground line-clamp-3 mt-2">
+          {description}
+        </p>
+      )}
     </Card>
   );
 };

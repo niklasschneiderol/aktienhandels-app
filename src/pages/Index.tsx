@@ -25,6 +25,7 @@ interface StockData {
     symbol: string;
     exchange: string;
     sector: string;
+    description?: string;
     marketCap: number;
     peRatio: number;
     eps: number;
@@ -126,6 +127,7 @@ const Index = () => {
           symbol: overview.Symbol,
           exchange: overview.Exchange,
           sector: overview.Sector,
+          description: overview.Description,
           marketCap: parseFloat(overview.MarketCapitalization),
           peRatio: parseFloat(overview.PERatio),
           eps: parseFloat(overview.EPS),
@@ -217,6 +219,7 @@ const Index = () => {
                   symbol={stockData.overview.symbol}
                   exchange={stockData.overview.exchange}
                   sector={stockData.overview.sector}
+                  description={stockData.overview.description}
                 />
 
                 <KeyMetrics

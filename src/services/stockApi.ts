@@ -11,6 +11,7 @@ export interface CompanyOverview {
   Name: string;
   Exchange: string;
   Sector: string;
+  Description?: string;
   MarketCapitalization: string;
   PERatio: string;
   EPS: string;
@@ -94,6 +95,7 @@ export const fetchCompanyOverview = async (symbol: string): Promise<CompanyOverv
     Name: profile.name || '',
     Exchange: profile.exchange || '',
     Sector: profile.finnhubIndustry || '',
+    Description: profile.description || undefined,
     MarketCapitalization: (profile.marketCapitalization * 1000000).toString(),
     PERatio: metrics.metric?.peBasicExclExtraTTM?.toString() || '0',
     EPS: metrics.metric?.epsBasicExclExtraItemsAnnual?.toString() || '0',
